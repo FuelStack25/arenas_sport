@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, PlusCircle, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, ArrowLeft, TrendingUp, Package, DollarSign } from 'lucide-react';
 
 function Dashboard() {
   const [stats, setStats] = useState({ totalRevenue: 0, totalSales: 0, totalProducts: 0 });
@@ -13,26 +13,32 @@ function Dashboard() {
 
   return (
     <div>
-      <h2 style={{ color: 'var(--navy)', marginBottom: '2rem' }}>Resumen de Tienda</h2>
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div style={{ color: '#6c757d', marginBottom: '0.5rem', fontWeight: '600' }}>Ventas Totales</div>
-          <div className="stat-value">${Number(stats.totalRevenue).toFixed(2)}</div>
+      <div className="admin-header">
+        <h2 className="admin-title">PANEL GENERAL</h2>
+        <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>[ MÉTRICAS DE RENDIMIENTO ]</p>
+      </div>
+
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+        <div className="stat-card" style={{ background: 'var(--surface)', padding: '2rem', border: '1px solid var(--border-color)', position: 'relative' }}>
+          <DollarSign size={32} color="var(--volt)" style={{ position: 'absolute', top: '2rem', right: '2rem', opacity: 0.5 }} />
+          <div className="stat-label" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>Ingresos Totales</div>
+          <div className="stat-value" style={{ fontFamily: 'Teko, sans-serif', fontSize: '4rem', color: 'var(--text-main)' }}>${Number(stats.totalRevenue).toFixed(2)}</div>
         </div>
-        <div className="stat-card">
-          <div style={{ color: '#6c757d', marginBottom: '0.5rem', fontWeight: '600' }}>Zapatos Vendidos</div>
-          <div className="stat-value">{stats.totalSales}</div>
+        <div className="stat-card" style={{ background: 'var(--surface)', padding: '2rem', border: '1px solid var(--border-color)', position: 'relative' }}>
+          <TrendingUp size={32} color="var(--volt)" style={{ position: 'absolute', top: '2rem', right: '2rem', opacity: 0.5 }} />
+          <div className="stat-label" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>Ventas Registradas</div>
+          <div className="stat-value" style={{ fontFamily: 'Teko, sans-serif', fontSize: '4rem', color: 'var(--text-main)' }}>{stats.totalSales}</div>
         </div>
-        <div className="stat-card">
-          <div style={{ color: '#6c757d', marginBottom: '0.5rem', fontWeight: '600' }}>Productos en Catálogo</div>
-          <div className="stat-value">{stats.totalProducts}</div>
+        <div className="stat-card" style={{ background: 'var(--surface)', padding: '2rem', border: '1px solid var(--border-color)', position: 'relative' }}>
+          <Package size={32} color="var(--volt)" style={{ position: 'absolute', top: '2rem', right: '2rem', opacity: 0.5 }} />
+          <div className="stat-label" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>Zapatos en Catálogo</div>
+          <div className="stat-value" style={{ fontFamily: 'Teko, sans-serif', fontSize: '4rem', color: 'var(--text-main)' }}>{stats.totalProducts}</div>
         </div>
       </div>
 
       <div className="admin-card">
-        <h3 style={{ color: 'var(--navy)', marginBottom: '1.5rem' }}>Últimas Ventas</h3>
-        <p style={{ color: '#6c757d' }}>No hay ventas recientes para mostrar.</p>
-        {/* Aquí iría una tabla con las ventas cuando haya datos */}
+        <h3 style={{ fontFamily: 'Teko, sans-serif', fontSize: '2.5rem', color: 'var(--text-main)', marginBottom: '1.5rem', textTransform: 'uppercase' }}>Últimos Movimientos</h3>
+        <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>EL REGISTRO DE VENTAS SE MOSTRARÁ AQUÍ PRONTO.</p>
       </div>
     </div>
   );
@@ -52,65 +58,79 @@ function AddProduct() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
-        setStatus('¡Producto agregado con éxito!');
+        setStatus('¡PRODUCTO AGREGADO CON ÉXITO!');
         setFormData({ name: '', description: '', price: '', image: '' });
+        setTimeout(() => setStatus(''), 3000);
       } else {
-        setStatus('Error al guardar el producto.');
+        setStatus('ERROR AL GUARDAR EL PRODUCTO.');
       }
     } catch (err) {
-      setStatus('Error de red.');
+      setStatus('ERROR DE RED.');
     }
   };
 
   return (
-    <div className="admin-card" style={{ maxWidth: '600px' }}>
-      <h2 style={{ color: 'var(--navy)', marginBottom: '2rem' }}>Agregar Nuevo Zapato</h2>
-      {status && <div style={{ marginBottom: '1rem', padding: '1rem', background: '#e3f2fd', color: '#0c5460', borderRadius: '8px' }}>{status}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Nombre del modelo</label>
-          <input 
-            type="text" 
-            className="form-control" 
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
-          />
-        </div>
-        <div className="form-group">
-          <label>Descripción</label>
-          <textarea 
-            className="form-control" 
-            rows="3" 
-            required
-            value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-          ></textarea>
-        </div>
-        <div className="form-group">
-          <label>Precio ($)</label>
-          <input 
-            type="number" 
-            step="0.01" 
-            className="form-control" 
-            required
-            value={formData.price}
-            onChange={(e) => setFormData({...formData, price: e.target.value})}
-          />
-        </div>
-        <div className="form-group">
-          <label>URL de la imagen (opcional)</label>
-          <input 
-            type="url" 
-            className="form-control" 
-            placeholder="https://ejemplo.com/zapato.jpg"
-            value={formData.image}
-            onChange={(e) => setFormData({...formData, image: e.target.value})}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary" style={{ width: 'auto' }}>Guardar Producto</button>
-      </form>
+    <div>
+      <div className="admin-header" style={{ marginBottom: '3rem' }}>
+        <h2 className="admin-title">NUEVO ZAPATO</h2>
+        <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>[ AÑADE NUEVO INVENTARIO AL CATÁLOGO PÚBLICO ]</p>
+      </div>
+
+      <div className="admin-card">
+        {status && (
+          <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'var(--volt)', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            {status}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group" style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nombre del modelo</label>
+            <input 
+              type="text" 
+              style={{ width: '100%', padding: '1rem', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-main)', fontFamily: 'inherit', fontSize: '1.1rem' }} 
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="Ej: Zapatilla Nitro V1"
+            />
+          </div>
+          <div className="form-group" style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Descripción del calzado</label>
+            <textarea 
+              style={{ width: '100%', padding: '1rem', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-main)', fontFamily: 'inherit', fontSize: '1.1rem' }} 
+              rows="4" 
+              required
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Escribe las características principales..."
+            ></textarea>
+          </div>
+          <div className="form-group" style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Precio Unitario ($)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              style={{ width: '100%', padding: '1rem', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-main)', fontFamily: 'inherit', fontSize: '1.1rem' }} 
+              required
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="form-group" style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>URL de la imagen (Opcional)</label>
+            <input 
+              type="url" 
+              style={{ width: '100%', padding: '1rem', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-main)', fontFamily: 'inherit', fontSize: '1.1rem' }} 
+              placeholder="https://ejemplo.com/zapato.jpg"
+              value={formData.image}
+              onChange={(e) => setFormData({...formData, image: e.target.value})}
+            />
+          </div>
+          <button type="submit" className="btn">CONFIRMAR INGRESO</button>
+        </form>
+      </div>
     </div>
   );
 }
@@ -121,25 +141,25 @@ export default function Admin() {
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
-        <div className="logo" style={{ marginBottom: '3rem' }}>
-          Panel Admin
+        <div className="logo">
+          ADMIN
         </div>
         <ul className="admin-menu">
           <li>
             <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>
-              <LayoutDashboard size={20} /> Dashboard
+              <LayoutDashboard size={20} /> Métricas
             </Link>
           </li>
           <li>
             <Link to="/admin/add" className={location.pathname === '/admin/add' ? 'active' : ''}>
-              <PlusCircle size={20} /> Subir Zapatos
+              <PlusCircle size={20} /> Inventario
             </Link>
           </li>
         </ul>
         
-        <div style={{ padding: '2rem', marginTop: 'auto', position: 'absolute', bottom: 0 }}>
-          <Link to="/" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ArrowLeft size={16} /> Volver a la tienda
+        <div style={{ padding: '2rem', marginTop: 'auto' }}>
+          <Link to="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <ArrowLeft size={20} /> Salir a la Tienda
           </Link>
         </div>
       </aside>
