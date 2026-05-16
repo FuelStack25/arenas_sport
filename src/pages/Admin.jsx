@@ -128,7 +128,7 @@ function AddProduct() {
               onChange={(e) => setFormData({...formData, image: e.target.value})}
             />
           </div>
-          <button type="submit" className="btn">CONFIRMAR INGRESO</button>
+          <button type="submit" className="admin-btn-save">{editingId ? 'GUARDAR CAMBIOS' : 'AÑADIR PRODUCTO'}</button>
         </form>
       </div>
     </div>

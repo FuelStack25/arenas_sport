@@ -15,8 +15,8 @@ function App() {
                   ARENAS<span>SPORT</span>
                 </Link>
                 <div className="nav-links">
-                  <Link to="/">Catálogo</Link>
-                  <Link to="/admin" style={{ color: 'var(--volt)' }}>[ Admin ]</Link>
+                  <Link to="/">CATÁLOGO</Link>
+                  <Link to="/admin" className="admin-link">[ ADMIN ]</Link>
                 </div>
               </div>
             </nav>
