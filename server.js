@@ -106,7 +106,7 @@ const distPath = join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   // All other GET requests not handled before will return the React app
-  app.get('/*', (req, res) => {
+  app.get(/(.*)/, (req, res) => {
     res.sendFile(join(distPath, 'index.html'));
   });
 }
