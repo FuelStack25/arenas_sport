@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { ShoppingCart, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
-export default function Home() {
+const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,24 +12,12 @@ export default function Home() {
         setLoading(false);
       })
       .catch(err => {
-        console.error(err);
+        console.error("Error loading products:", err);
         setLoading(false);
       });
   }, []);
 
   return (
-    <>
-      <header className="hero">
-        <div className="hero-bg-text">LIMITLESS</div>
-        <div className="container">
-          <div className="hero-content">
-            <div className="hero-text-block">
-              <h1>
-                Supera tus<br/><span>límites.</span>
-              </h1>
-              <p className="hero-desc">
-                La mejor selección de zapatillas deportivas diseñadas para el rendimiento, confort y estilo absoluto. Tu próximo récord empieza aquí, no dejes que nada te detenga.
-              </p>
     <div className="home-container">
       <section className="hero">
         <div className="hero-bg-text">ATHLETIC</div>
@@ -74,14 +61,17 @@ export default function Home() {
                   </div>
                   <div className="product-info">
                     <h3 className="product-title">{product.name}</h3>
-                    </div>
+                    <div className="product-price">${product.price}</div>
+                    <button className="btn-add">AÑADIR AL CARRITO</button>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </main>
-    </>
+      </section>
+    </div>
   );
-}
+};
+
+export default Home;
