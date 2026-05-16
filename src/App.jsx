@@ -15,8 +15,8 @@ function App() {
                   ARENAS<span>SPORT</span>
                 </Link>
                 <div className="nav-links">
-                  <Link to="/">CATÁLOGO</Link>
-                  <Link to="/admin" className="admin-link">[ ADMIN ]</Link>
+                  <a href="#catalogo">CATÁLOGO</a>
+                  <a href="#contacto">CONTACTO</a>
                 </div>
               </div>
             </nav>
