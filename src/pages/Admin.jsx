@@ -41,7 +41,7 @@ function LoginForm({ onLogin }) {
     <div className="login-page">
       <div className="login-card">
         <div className="login-brand">
-          <div className="login-logo">ARENAS<span>SPORT</span></div>
+          <img src="/Logo.png" alt="Arenas Sport" className="login-logo-img" />
           <div className="login-badge">PANEL ADMINISTRADOR</div>
         </div>
 
@@ -356,7 +356,7 @@ export default function Admin() {
     <div className="admin-layout">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
-          <span className="admin-sidebar-logo">ARENAS<em>SPORT</em></span>
+          <img src="/Logo.png" alt="Arenas Sport" className="sidebar-logo-img" />
           <span className="admin-sidebar-tag">ADMIN</span>
         </div>
 

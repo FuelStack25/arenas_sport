@@ -123,7 +123,7 @@ const Home = () => {
         <div className="container">
           <div className="footer-content">
             <div className="footer-brand">
-              <div className="footer-logo">ARENAS<span>SPORT</span></div>
+              <img src="/Logo.png" alt="Arenas Sport" className="footer-logo-img" />
               <p>Calzado deportivo de alto rendimiento.<br />Hacé tu pedido directamente por WhatsApp.</p>
             </div>
             <a

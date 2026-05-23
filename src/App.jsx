@@ -12,7 +12,7 @@ function App() {
             <nav className="navbar">
               <div className="container">
                 <Link to="/" className="logo">
-                  ARENAS<span>SPORT</span>
+                  <img src="/Logo.png" alt="Arenas Sport" className="logo-img" />
                 </Link>
                 <div className="nav-links">
                   <a href="#catalogo">CATÁLOGO</a>

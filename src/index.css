@@ -75,15 +75,36 @@ h1, h2, h3, h4 {
 }
 
 .navbar .logo {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--white);
   text-decoration: none;
+  display: flex;
+  align-items: center;
 }
 
-.navbar .logo span { color: var(--accent-red); }
+.logo-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer-logo-img {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+.login-logo-img {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-logo-img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
 
 .nav-links {
   display: flex;
