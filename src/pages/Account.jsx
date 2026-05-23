@@ -43,7 +43,8 @@ export default function Account({ user, onLogin, onLogout }) {
       });
       const data = await res.json();
       if (res.ok) {
-        onLogin({ name: data.name, email: data.email });
+        if (data.adminToken) sessionStorage.setItem('adminToken', data.adminToken);
+        onLogin({ name: data.name, email: data.email, role: data.role });
         notify('¡Bienvenido/a de nuevo!');
         setTimeout(() => navigate('/'), 1200);
       } else { notify(data.error || 'Credenciales incorrectas.', true); }

@@ -138,7 +138,13 @@ app.post('/api/user/login', (req, res) => {
     if (err || !user) return res.status(401).json({ error: 'Credenciales incorrectas' });
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Credenciales incorrectas' });
-    res.json({ name: user.name, email: user.email, role: user.role });
+    const payload = { name: user.name, email: user.email, role: user.role };
+    if (user.role === 'admin') {
+      const token = crypto.randomBytes(32).toString('hex');
+      adminSessions.set(token, { email: user.email, name: user.name });
+      payload.adminToken = token;
+    }
+    res.json(payload);
   });
 });
 
