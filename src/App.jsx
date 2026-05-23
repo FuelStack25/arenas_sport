@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
@@ -11,6 +11,13 @@ const loadUser = () => {
 
 function App() {
   const [user, setUser] = useState(loadUser);
+
+  useEffect(() => {
+    if (user && !user.role) {
+      localStorage.removeItem(USER_KEY);
+      setUser(null);
+    }
+  }, []);
 
   const handleLogin = (data) => {
     localStorage.setItem(USER_KEY, JSON.stringify(data));
