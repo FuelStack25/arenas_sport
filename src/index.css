@@ -81,8 +81,12 @@ h1, h2, h3, h4 {
 }
 
 .logo-img {
-  height: 52px;
-  width: auto;
+  height: 46px;
+  width: 46px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  background: #fff;
   object-fit: contain;
 }
 
