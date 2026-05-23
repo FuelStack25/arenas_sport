@@ -35,6 +35,11 @@ function App() {
                 <div className="nav-links">
                   <a href="#catalogo">CATÁLOGO</a>
                   <a href="#contacto">CONTACTO</a>
+                  {user?.role === 'admin' && (
+                    <Link to="/admin" className="nav-account" style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}>
+                      ADMIN
+                    </Link>
+                  )}
                   <Link to="/cuenta" className="nav-account">
                     {user ? user.name.split(' ')[0].toUpperCase() : 'MI CUENTA'}
                   </Link>
