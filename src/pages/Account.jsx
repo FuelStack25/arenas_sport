@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
 
 export default function Account({ user, onLogin, onLogout }) {
   const [tab, setTab]           = useState('login');
@@ -64,6 +64,12 @@ export default function Account({ user, onLogin, onLogout }) {
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{user.email}</div>
           </div>
+          {user.role === 'admin' && (
+            <Link to="/admin" className="login-btn"
+              style={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem', background: 'var(--accent-blue)', textDecoration: 'none' }}>
+              <ShieldCheck size={16} /> PANEL DE ADMINISTRADOR
+            </Link>
+          )}
           <button className="login-btn" onClick={() => { onLogout(); navigate('/'); }}>
             CERRAR SESIÓN
           </button>
