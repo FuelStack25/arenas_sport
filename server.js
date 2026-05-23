@@ -122,6 +122,15 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+app.get('/api/user/role', (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email requerido' });
+  db.get('SELECT role FROM users WHERE email = ?', [email], (err, row) => {
+    if (err || !row) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json({ role: row.role });
+  });
+});
+
 app.post('/api/user/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });

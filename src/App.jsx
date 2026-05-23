@@ -11,13 +11,15 @@ const loadUser = () => {
 
 function App() {
   const [user, setUser] = useState(loadUser);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (user && !user.role) {
-      localStorage.removeItem(USER_KEY);
-      setUser(null);
-    }
-  }, []);
+    if (!user?.email) { setIsAdmin(false); return; }
+    fetch(`/api/user/role?email=${encodeURIComponent(user.email)}`)
+      .then(r => r.json())
+      .then(d => setIsAdmin(d.role === 'admin'))
+      .catch(() => setIsAdmin(false));
+  }, [user?.email]);
 
   const handleLogin = (data) => {
     localStorage.setItem(USER_KEY, JSON.stringify(data));
@@ -27,6 +29,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem(USER_KEY);
     setUser(null);
+    setIsAdmin(false);
   };
 
   return (
@@ -42,7 +45,7 @@ function App() {
                 <div className="nav-links">
                   <a href="#catalogo">CATÁLOGO</a>
                   <a href="#contacto">CONTACTO</a>
-                  {user?.role === 'admin' && (
+                  {isAdmin && (
                     <Link to="/admin" className="nav-account" style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}>
                       ADMIN
                     </Link>
