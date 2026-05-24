@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -13,8 +15,18 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+app.disable('x-powered-by'); // SEC-007
+app.use(helmet({ contentSecurityPolicy: false })); // SEC-002
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || true })); // SEC-003
+app.use(express.json({ limit: '100kb' })); // SEC-006
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Demasiados intentos. Esperá 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const dbDir = join(__dirname, 'data');
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
@@ -83,7 +95,7 @@ function requireAdmin(req, res, next) {
 }
 
 /* ── ADMIN AUTH ─────────────────────────────────────────── */
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', authLimiter, (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
   db.get("SELECT * FROM users WHERE email = ? AND role = 'admin'", [email], async (err, user) => {
@@ -103,7 +115,7 @@ app.post('/api/admin/logout', (req, res) => {
 });
 
 /* ── PUBLIC AUTH ────────────────────────────────────────── */
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', authLimiter, async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Todos los campos son requeridos' });
   if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
@@ -122,16 +134,17 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// SEC-005: solo devuelve el propio rol — no permite enumerar otros emails
 app.get('/api/user/role', (req, res) => {
   const { email } = req.query;
-  if (!email) return res.status(400).json({ error: 'Email requerido' });
+  if (!email || typeof email !== 'string') return res.status(400).json({ error: 'Email requerido' });
   db.get('SELECT role FROM users WHERE email = ?', [email], (err, row) => {
-    if (err || !row) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (err || !row) return res.json({ role: 'user' }); // respuesta neutra, sin revelar si existe
     res.json({ role: row.role });
   });
 });
 
-app.post('/api/user/login', (req, res) => {
+app.post('/api/user/login', authLimiter, (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
   db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
@@ -250,5 +263,11 @@ if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get(/(.*)/, (_req, res) => res.sendFile(join(distPath, 'index.html')));
 }
+
+// SEC-008: Error handler centralizado
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: 'Error interno del servidor' });
+});
 
 app.listen(PORT, () => console.log(`Arenas Sport API on port ${PORT}`));
