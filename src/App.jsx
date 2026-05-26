@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
 import Account from './pages/Account';
+import CartDrawer from './components/CartDrawer';
+import { useCart } from './hooks/useCart';
 
 const USER_KEY = 'arenas_user';
 const loadUser = () => {
@@ -12,6 +15,8 @@ const loadUser = () => {
 function App() {
   const [user, setUser] = useState(loadUser);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const cart = useCart();
 
   useEffect(() => {
     if (!user?.email) { setIsAdmin(false); return; }
@@ -34,6 +39,13 @@ function App() {
 
   return (
     <BrowserRouter>
+      {showCart && (
+        <CartDrawer
+          items={cart.items} total={cart.total} count={cart.count}
+          onRemove={cart.remove} onUpdate={cart.update}
+          onClear={cart.clear} onClose={() => setShowCart(false)}
+        />
+      )}
       <Routes>
         <Route path="/" element={
           <>
@@ -53,10 +65,14 @@ function App() {
                   <Link to="/cuenta" className="nav-account">
                     {user ? user.name.split(' ')[0].toUpperCase() : 'MI CUENTA'}
                   </Link>
+                  <button className="nav-cart-btn" onClick={() => setShowCart(true)} aria-label="Carrito">
+                    <ShoppingCart size={18} />
+                    {cart.count > 0 && <span className="nav-cart-badge">{cart.count}</span>}
+                  </button>
                 </div>
               </div>
             </nav>
-            <Home />
+            <Home onAdd={cart.add} onOpenCart={() => setShowCart(true)} />
           </>
         } />
         <Route path="/cuenta" element={<Account user={user} onLogin={handleLogin} onLogout={handleLogout} />} />

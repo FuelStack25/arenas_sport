@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ShoppingCart } from 'lucide-react';
 
 // ← CAMBIA ESTE NÚMERO POR EL TUYO (formato internacional sin + ni espacios)
 const WHATSAPP_NUMBER = '5491100000000';
@@ -11,8 +12,15 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-function ProductCard({ product }) {
+function ProductCard({ product, onAdd }) {
   const [selectedSize, setSelectedSize] = useState(null);
+  const [added, setAdded] = useState(false);
+
+  const handleAdd = () => {
+    onAdd(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
   const handleWhatsApp = () => {
     const sizeText = selectedSize ? ` Talle: *${selectedSize}*` : '';
@@ -52,16 +60,22 @@ function ProductCard({ product }) {
           </div>
         </div>
 
-        <button className="btn-whatsapp" onClick={handleWhatsApp}>
-          <WhatsAppIcon />
-          CONSULTAR POR WHATSAPP
-        </button>
+        <div className="product-actions">
+          <button className="btn-add-cart" onClick={handleAdd}>
+            <ShoppingCart size={15} />
+            {added ? 'AGREGADO ✓' : 'AGREGAR'}
+          </button>
+          <button className="btn-whatsapp" onClick={handleWhatsApp}>
+            <WhatsAppIcon />
+            WHATSAPP
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-const Home = () => {
+const Home = ({ onAdd }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,7 +126,7 @@ const Home = () => {
           ) : (
             <div className="product-grid">
               {products.map(product => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} onAdd={onAdd} />
               ))}
             </div>
           )}

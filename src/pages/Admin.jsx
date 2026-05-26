@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard, PlusCircle, ArrowLeft, TrendingUp,
   Package, DollarSign, LogOut, Trash2, Edit2, Eye, X,
@@ -8,8 +8,8 @@ import {
 
 const TOKEN_KEY = 'arenas_admin_token';
 const NAME_KEY  = 'arenas_admin_name';
-const getToken  = () => sessionStorage.getItem(TOKEN_KEY);
-const getName   = () => sessionStorage.getItem(NAME_KEY);
+const getToken  = () => localStorage.getItem(TOKEN_KEY);
+const getName   = () => localStorage.getItem(NAME_KEY);
 
 /* ─── LOGIN ─────────────────────────────────────────────── */
 function LoginForm({ onLogin }) {
@@ -445,12 +445,12 @@ export default function Admin() {
 
   const handleLogout = () => {
     fetch('/api/admin/logout', { method: 'POST', headers: { 'x-admin-token': getToken() } }).catch(() => {});
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(NAME_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(NAME_KEY);
     setToken(null);
   };
 
-  if (!token) return <LoginForm onLogin={setToken} />;
+  if (!token) return <Navigate to="/" replace />;
 
   const navLink = (path, label, Icon) => (
     <li>

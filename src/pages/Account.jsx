@@ -44,8 +44,8 @@ export default function Account({ user, onLogin, onLogout }) {
       const data = await res.json();
       if (res.ok) {
         if (data.adminToken) {
-          sessionStorage.setItem('arenas_admin_token', data.adminToken);
-          sessionStorage.setItem('arenas_admin_name', data.name);
+          localStorage.setItem('arenas_admin_token', data.adminToken);
+          localStorage.setItem('arenas_admin_name', data.name);
         }
         onLogin({ name: data.name, email: data.email, role: data.role });
         notify('¡Bienvenido/a de nuevo!');
