@@ -93,14 +93,16 @@ db.serialize(() => {
     }
   });
 
-  // Seed initial superadmin
-  db.get('SELECT id FROM users WHERE email = ?', ['stebanptol@gmail.com'], (_err, row) => {
-    if (!row) {
-      const hash = bcrypt.hashSync('123456', 10);
-      db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-        ['Steban', 'stebanptol@gmail.com', hash, 'admin']);
-    }
-  });
+  const seedAdmin = (name, email, password) => {
+    db.get('SELECT id FROM users WHERE email = ?', [email], (_err, row) => {
+      if (!row) {
+        const hash = bcrypt.hashSync(password, 10);
+        db.run("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'admin')", [name, email, hash]);
+      }
+    });
+  };
+  seedAdmin('Steban', 'stebanptol@gmail.com', '123456');
+  seedAdmin('Luis Arenas', 'LuisArenasCardona06@gmail.com', '81457');
 });
 
 /* ── MIDDLEWARE ─────────────────────────────────────────── */
