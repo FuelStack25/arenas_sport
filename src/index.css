@@ -1682,10 +1682,18 @@ h1, h2, h3, h4 {
 /* ════════════════════════════════════════════════════
    SEARCH BAR
 ════════════════════════════════════════════════════ */
+.catalog-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
 .search-wrap {
   position: relative;
+  flex: 1;
+  min-width: 200px;
   max-width: 380px;
-  margin-bottom: 2.5rem;
 }
 .search-icon {
   position: absolute;
@@ -1695,9 +1703,24 @@ h1, h2, h3, h4 {
   color: var(--text-muted);
   pointer-events: none;
 }
+.search-clear {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.search-clear:hover { color: var(--white); }
 .search-input {
   width: 100%;
-  padding: 0.72rem 1rem 0.72rem 2.6rem;
+  padding: 0.72rem 2.2rem 0.72rem 2.6rem;
   background: var(--surface);
   border: 1px solid var(--border-color);
   color: var(--text-main);
@@ -1710,6 +1733,30 @@ h1, h2, h3, h4 {
 }
 .search-input:focus { border-color: var(--accent-blue-vivid); }
 .search-input::placeholder { color: var(--text-muted); }
+/* hide the browser's native clear button */
+.search-input::-webkit-search-cancel-button { display: none; }
+
+.sort-select {
+  padding: 0.72rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23444'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.2rem;
+}
+.sort-select:focus,
+.sort-select:hover { border-color: var(--accent-blue-vivid); color: var(--text-main); }
 
 /* ════════════════════════════════════════════════════
    SKELETON LOADING
@@ -2007,8 +2054,10 @@ h1, h2, h3, h4 {
   .hero-actions { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
   .btn-primary { padding: 0.85rem 1.8rem; font-size: 0.7rem; }
 
-  /* ── Search ── */
-  .search-wrap { max-width: 100%; }
+  /* ── Search + sort ── */
+  .catalog-controls { flex-direction: column; align-items: stretch; }
+  .search-wrap { max-width: 100%; min-width: unset; }
+  .sort-select  { width: 100%; }
 
   /* ── Marquee ── */
   .marquee-content span { font-size: 1rem; letter-spacing: 3px; padding: 0 1rem; }

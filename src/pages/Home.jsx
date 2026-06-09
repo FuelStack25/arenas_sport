@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Search, X } from 'lucide-react';
+import heroImg from '../assets/hero.png';
 
 const WHATSAPP_NUMBER = '573137884893';
-
 const SIZES = [36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
 
 const WhatsAppIcon = () => (
@@ -11,11 +11,36 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+function SkeletonCard() {
+  return (
+    <div className="product-card skeleton-card">
+      <div className="skeleton-img" />
+      <div className="product-info">
+        <div className="skeleton-line wide" />
+        <div className="skeleton-line medium" />
+        <div className="skeleton-line narrow" />
+        <div style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+          <div className="skeleton-line medium" />
+          <div style={{ display: 'flex', gap: '4px', marginTop: '0.6rem' }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="skeleton-size" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProductCard({ product, onAdd, index }) {
   const [selectedSize, setSelectedSize] = useState(null);
   const [added, setAdded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const outOfStock = !product.in_stock;
 
   const handleAdd = () => {
+    if (outOfStock) return;
     onAdd(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -23,17 +48,35 @@ function ProductCard({ product, onAdd, index }) {
 
   const handleWhatsApp = () => {
     const sizeText = selectedSize ? ` Talle: *${selectedSize}*` : '';
-    const message = encodeURIComponent(
-      `Hola! Me interesa el modelo *${product.name}* — $${Number(product.price).toFixed(2)}.${sizeText} ¿Está disponible?`
-    );
+    const message = outOfStock
+      ? encodeURIComponent(`Hola! Me interesa el modelo *${product.name}*. ¿Cuándo va a volver a tener stock?`)
+      : encodeURIComponent(`Hola! Me interesa el modelo *${product.name}* — $${Number(product.price).toFixed(2)}.${sizeText} ¿Está disponible?`);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <div className="product-card" style={{ '--card-i': index }}>
+    <div className={`product-card${outOfStock ? ' out-of-stock' : ''}`} style={{ '--card-i': index }}>
       <div className="product-image-container">
-        <img src={product.image} alt={product.name} className="product-image" />
-        <div className="product-badge">NUEVO</div>
+        {imgError ? (
+          <div className="product-img-fallback">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+        ) : (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="product-image"
+            loading="lazy"
+            onError={() => setImgError(true)}
+          />
+        )}
+        {outOfStock
+          ? <div className="product-badge product-badge-out">AGOTADO</div>
+          : product.is_new ? <div className="product-badge">NUEVO</div> : null
+        }
       </div>
       <div className="product-info">
         <h3 className="product-title">{product.name}</h3>
@@ -54,7 +97,8 @@ function ProductCard({ product, onAdd, index }) {
               <button
                 key={size}
                 className={`size-btn${selectedSize === size ? ' active' : ''}`}
-                onClick={() => setSelectedSize(selectedSize === size ? null : size)}
+                onClick={() => !outOfStock && setSelectedSize(selectedSize === size ? null : size)}
+                disabled={outOfStock}
               >
                 {size}
               </button>
@@ -63,13 +107,13 @@ function ProductCard({ product, onAdd, index }) {
         </div>
 
         <div className="product-actions">
-          <button className="btn-add-cart" onClick={handleAdd}>
+          <button className="btn-add-cart" onClick={handleAdd} disabled={outOfStock}>
             <ShoppingCart size={13} />
-            {added ? 'AGREGADO ✓' : 'AGREGAR'}
+            {outOfStock ? 'SIN STOCK' : added ? 'AGREGADO ✓' : 'AGREGAR'}
           </button>
           <button className="btn-whatsapp" onClick={handleWhatsApp}>
             <WhatsAppIcon />
-            WHATSAPP
+            {outOfStock ? 'CONSULTAR' : 'WHATSAPP'}
           </button>
         </div>
       </div>
@@ -80,6 +124,8 @@ function ProductCard({ product, onAdd, index }) {
 const Home = ({ onAdd }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('nuevo');
 
   useEffect(() => {
     fetch('/api/products')
@@ -88,13 +134,19 @@ const Home = ({ onAdd }) => {
       .catch(() => setLoading(false));
   }, []);
 
+  const filtered = products
+    .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sort === 'precio-asc')  return a.price - b.price;
+      if (sort === 'precio-desc') return b.price - a.price;
+      return 0; // 'nuevo' → orden original (DB devuelve DESC id)
+    });
+
   return (
     <div className="home-container">
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-bg-text">AS</div>
-
-        {/* Decorative tactical coordinates */}
         <div className="hero-coordinates">
           <div>LAT 6.2442° N</div>
           <div>LON 75.5812° W</div>
@@ -104,18 +156,25 @@ const Home = ({ onAdd }) => {
         </div>
 
         <div className="container">
-          <h1 className="hero-title">
-            DOMINA EL <span>TERRENO</span>
-          </h1>
-          <p className="hero-subtitle">EQUIPAMIENTO DE ALTO RENDIMIENTO PARA ATLETAS DE ÉLITE</p>
-          <div className="hero-actions">
-            <a href="#catalogo" className="btn-primary">
-              VER COLECCIÓN
-              <span className="btn-primary-arrow">→</span>
-            </a>
-            <div className="scroll-indicator">
-              <div className="mouse"><div className="mouse-wheel"></div></div>
-              <span>DESLIZÁ</span>
+          <div className="hero-inner">
+            <div className="hero-text">
+              <h1 className="hero-title">
+                DOMINA EL <span>TERRENO</span>
+              </h1>
+              <p className="hero-subtitle">EQUIPAMIENTO DE ALTO RENDIMIENTO PARA ATLETAS DE ÉLITE</p>
+              <div className="hero-actions">
+                <a href="#catalogo" className="btn-primary">
+                  VER COLECCIÓN
+                  <span className="btn-primary-arrow">→</span>
+                </a>
+                <div className="scroll-indicator">
+                  <div className="mouse"><div className="mouse-wheel"></div></div>
+                  <span>DESLIZÁ</span>
+                </div>
+              </div>
+            </div>
+            <div className="hero-visual">
+              <img src={heroImg} alt="Calzado deportivo Arenas Sport" className="hero-img" />
             </div>
           </div>
         </div>
@@ -138,20 +197,14 @@ const Home = ({ onAdd }) => {
         <div className="marquee-2">
           <div className="marquee-content-2">
             <span>CALZADO DEPORTIVO DE ALTO RENDIMIENTO</span>
-            <span>✦</span>
-            <span>TALLAS 36 — 45</span>
-            <span>✦</span>
-            <span>PEDIDOS POR WHATSAPP</span>
-            <span>✦</span>
-            <span>MARCAS PREMIUM</span>
+            <span>✦</span><span>TALLAS 36 — 45</span>
+            <span>✦</span><span>PEDIDOS POR WHATSAPP</span>
+            <span>✦</span><span>MARCAS PREMIUM</span>
             <span>✦</span>
             <span>CALZADO DEPORTIVO DE ALTO RENDIMIENTO</span>
-            <span>✦</span>
-            <span>TALLAS 36 — 45</span>
-            <span>✦</span>
-            <span>PEDIDOS POR WHATSAPP</span>
-            <span>✦</span>
-            <span>MARCAS PREMIUM</span>
+            <span>✦</span><span>TALLAS 36 — 45</span>
+            <span>✦</span><span>PEDIDOS POR WHATSAPP</span>
+            <span>✦</span><span>MARCAS PREMIUM</span>
             <span>✦</span>
           </div>
         </div>
@@ -163,16 +216,52 @@ const Home = ({ onAdd }) => {
           <div className="section-header">
             <div className="section-number">// 01 — EQUIPAMIENTO</div>
             <h2 className="section-title">COLECCIÓN <span>ACTUAL</span></h2>
-            <span className="results-count">[{products.length.toString().padStart(2, '0')}] ARTÍCULOS</span>
+            <span className="results-count">
+              [{loading ? '—' : filtered.length.toString().padStart(2, '0')}] ARTÍCULOS
+            </span>
           </div>
 
+          {/* Búsqueda + ordenamiento */}
+          {!loading && products.length > 0 && (
+            <div className="catalog-controls">
+              <div className="search-wrap">
+                <Search size={14} className="search-icon" />
+                <input
+                  type="search"
+                  className="search-input"
+                  placeholder="BUSCAR MODELO..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+                {search && (
+                  <button className="search-clear" onClick={() => setSearch('')} aria-label="Limpiar">
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <select
+                className="sort-select"
+                value={sort}
+                onChange={e => setSort(e.target.value)}
+              >
+                <option value="nuevo">MÁS NUEVOS</option>
+                <option value="precio-asc">MENOR PRECIO</option>
+                <option value="precio-desc">MAYOR PRECIO</option>
+              </select>
+            </div>
+          )}
+
           {loading ? (
-            <div className="loading">CARGANDO...</div>
-          ) : products.length === 0 ? (
-            <div className="loading">SIN PRODUCTOS DISPONIBLES AÚN</div>
+            <div className="product-grid" style={{ marginTop: '2rem' }}>
+              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="loading">
+              {search ? `SIN RESULTADOS PARA "${search.toUpperCase()}"` : 'SIN PRODUCTOS DISPONIBLES AÚN'}
+            </div>
           ) : (
             <div className="product-grid">
-              {products.map((product, index) => (
+              {filtered.map((product, index) => (
                 <ProductCard key={product.id} product={product} onAdd={onAdd} index={index} />
               ))}
             </div>

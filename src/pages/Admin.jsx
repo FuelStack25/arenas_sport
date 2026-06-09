@@ -73,10 +73,13 @@ function LoginForm({ onLogin }) {
 /* ─── DASHBOARD ─────────────────────────────────────────── */
 function Dashboard() {
   const [stats, setStats] = useState({ totalRevenue: 0, totalSales: 0, totalProducts: 0, totalUsers: 0 });
+  const [sales, setSales] = useState([]);
 
   useEffect(() => {
     fetch('/api/stats', { headers: { 'x-admin-token': getToken() } })
       .then(r => r.json()).then(setStats).catch(() => {});
+    fetch('/api/sales', { headers: { 'x-admin-token': getToken() } })
+      .then(r => r.json()).then(d => setSales(Array.isArray(d) ? d.slice(0, 20) : [])).catch(() => {});
   }, []);
 
   return (
@@ -108,10 +111,39 @@ function Dashboard() {
         </div>
       </div>
       <div className="admin-card">
-        <h3 className="admin-card-title">ÚLTIMOS MOVIMIENTOS</h3>
-        <p style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.95rem' }}>
-          El registro de ventas por WhatsApp se mostrará aquí cuando esté disponible.
-        </p>
+        <h3 className="admin-card-title">ÚLTIMAS VENTAS POR WHATSAPP</h3>
+        {sales.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: 300 }}>
+            Las ventas aparecerán aquí cuando los clientes hagan pedidos por WhatsApp.
+          </p>
+        ) : (
+          <div className="users-table-wrap">
+            <table className="users-table">
+              <thead>
+                <tr><th>Producto</th><th>Cant.</th><th>Total</th><th>Fecha</th></tr>
+              </thead>
+              <tbody>
+                {sales.map(s => (
+                  <tr key={s.id}>
+                    <td style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      {s.product_image && (
+                        <img src={s.product_image} alt="" style={{ width: 32, height: 32, objectFit: 'contain', background: '#050505' }} />
+                      )}
+                      {s.product_name || '—'}
+                    </td>
+                    <td>{s.quantity}</td>
+                    <td style={{ color: 'var(--accent-red)', fontFamily: 'var(--font-display)' }}>
+                      ${Number(s.total_price).toFixed(2)}
+                    </td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      {new Date(s.sale_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -123,7 +155,7 @@ function ProductList() {
   const [loading, setLoading]     = useState(true);
   const [status, setStatus]       = useState('');
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData]   = useState({ name: '', description: '', price: '', image: '' });
+  const [formData, setFormData]   = useState({ name: '', description: '', price: '', image: '', is_new: 1, in_stock: 1 });
 
   const load = () => {
     fetch('/api/products').then(r => r.json())
@@ -141,7 +173,7 @@ function ProductList() {
 
   const startEdit = (p) => {
     setEditingId(p.id);
-    setFormData({ name: p.name, description: p.description || '', price: p.price, image: p.image || '' });
+    setFormData({ name: p.name, description: p.description || '', price: p.price, image: p.image || '', is_new: p.is_new ?? 1, in_stock: p.in_stock ?? 1 });
   };
 
   const handleUpdate = async (e) => {
@@ -186,6 +218,19 @@ function ProductList() {
                       <label className="form-label">IMAGEN</label>
                       <ImageUpload value={formData.image} onChange={url => setFormData({ ...formData, image: url })} />
                     </div>
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                      <label className="form-label">ESTADO</label>
+                      <div className="admin-toggles">
+                        <label className="admin-toggle-label">
+                          <input type="checkbox" checked={!!formData.is_new} onChange={e => setFormData({ ...formData, is_new: e.target.checked ? 1 : 0 })} />
+                          <span>Mostrar badge NUEVO</span>
+                        </label>
+                        <label className="admin-toggle-label">
+                          <input type="checkbox" checked={!!formData.in_stock} onChange={e => setFormData({ ...formData, in_stock: e.target.checked ? 1 : 0 })} />
+                          <span>En stock</span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <div className="edit-actions">
                     <button type="submit" className="admin-btn-save">GUARDAR</button>
@@ -194,9 +239,13 @@ function ProductList() {
                 </form>
               ) : (
                 <>
-                  <div className="product-list-thumb"><img src={product.image} alt={product.name} /></div>
+                  <div className="product-list-thumb"><img src={product.image} alt={product.name} loading="lazy" /></div>
                   <div className="product-list-info">
-                    <div className="product-list-name">{product.name}</div>
+                    <div className="product-list-name">
+                      {product.name}
+                      {!product.in_stock && <span className="admin-badge-out">AGOTADO</span>}
+                      {!!product.is_new && !!product.in_stock && <span className="admin-badge-new">NUEVO</span>}
+                    </div>
                     <div className="product-list-desc">{product.description}</div>
                     <div className="product-list-price">${Number(product.price).toFixed(2)}</div>
                   </div>
@@ -238,7 +287,7 @@ function ImageUpload({ value, onChange }) {
   return (
     <div className="img-upload-wrap">
       <label className="img-upload-label">
-        <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment"
+        <input type="file" accept="image/jpeg,image/png,image/webp"
           onChange={handleFile} style={{ display: 'none' }} />
         <div className="img-upload-btn">
           {uploading ? 'SUBIENDO...' : preview ? 'CAMBIAR IMAGEN' : 'SELECCIONAR IMAGEN'}
@@ -258,7 +307,7 @@ function ImageUpload({ value, onChange }) {
 
 /* ─── ADD PRODUCT ───────────────────────────────────────── */
 function AddProduct() {
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', image: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', image: '', is_new: 1, in_stock: 1 });
   const [status, setStatus]     = useState('');
 
   const handleSubmit = async (e) => {
@@ -305,6 +354,19 @@ function AddProduct() {
           <div className="form-group">
             <label className="form-label">Imagen del producto</label>
             <ImageUpload value={formData.image} onChange={url => setFormData({ ...formData, image: url })} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Estado</label>
+            <div className="admin-toggles">
+              <label className="admin-toggle-label">
+                <input type="checkbox" checked={!!formData.is_new} onChange={e => setFormData({ ...formData, is_new: e.target.checked ? 1 : 0 })} />
+                <span>Mostrar badge NUEVO</span>
+              </label>
+              <label className="admin-toggle-label">
+                <input type="checkbox" checked={!!formData.in_stock} onChange={e => setFormData({ ...formData, in_stock: e.target.checked ? 1 : 0 })} />
+                <span>En stock</span>
+              </label>
+            </div>
           </div>
           <button type="submit" className="admin-btn-save" style={{ marginTop: '1rem' }}>AÑADIR AL CATÁLOGO</button>
         </form>
