@@ -8,6 +8,7 @@ import { dirname, join } from 'path';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,6 +31,24 @@ const authLimiter = rateLimit({
 
 const dbDir = join(__dirname, 'data');
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
+
+const uploadsDir = join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype));
+  },
+});
 
 const db = new sqlite3.Database(join(dbDir, 'store.db'));
 
@@ -159,6 +178,14 @@ app.post('/api/user/login', authLimiter, (req, res) => {
     }
     res.json(payload);
   });
+});
+
+/* ── UPLOADS ────────────────────────────────────────────── */
+app.use('/uploads', express.static(uploadsDir));
+
+app.post('/api/upload', requireAdmin, upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Archivo inválido. Solo JPG, PNG o WEBP hasta 8 MB.' });
+  res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 /* ── PRODUCTS ───────────────────────────────────────────── */

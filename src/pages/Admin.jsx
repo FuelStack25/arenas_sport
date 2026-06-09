@@ -183,8 +183,8 @@ function ProductList() {
                       <input className="form-input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
                     </div>
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                      <label className="form-label">URL IMAGEN</label>
-                      <input className="form-input" type="url" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                      <label className="form-label">IMAGEN</label>
+                      <ImageUpload value={formData.image} onChange={url => setFormData({ ...formData, image: url })} />
                     </div>
                   </div>
                   <div className="edit-actions">
@@ -209,6 +209,48 @@ function ProductList() {
             </div>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── IMAGE UPLOAD FIELD ────────────────────────────────── */
+function ImageUpload({ value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview]     = useState(value || '');
+
+  const handleFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res  = await fetch('/api/upload', { method: 'POST', headers: { 'x-admin-token': getToken() }, body: fd });
+      const data = await res.json();
+      if (res.ok) { onChange(data.url); }
+      else { alert(data.error || 'Error al subir imagen'); setPreview(value || ''); }
+    } catch { alert('Error de red al subir imagen'); setPreview(value || ''); }
+    setUploading(false);
+  };
+
+  return (
+    <div className="img-upload-wrap">
+      <label className="img-upload-label">
+        <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment"
+          onChange={handleFile} style={{ display: 'none' }} />
+        <div className="img-upload-btn">
+          {uploading ? 'SUBIENDO...' : preview ? 'CAMBIAR IMAGEN' : 'SELECCIONAR IMAGEN'}
+        </div>
+      </label>
+      {preview && (
+        <div className="img-upload-preview">
+          <img src={preview} alt="Vista previa" />
+        </div>
+      )}
+      {value && !preview.startsWith('blob:') && (
+        <div className="img-upload-url">{value}</div>
       )}
     </div>
   );
@@ -261,9 +303,8 @@ function AddProduct() {
               onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="0.00" />
           </div>
           <div className="form-group">
-            <label className="form-label">URL de imagen</label>
-            <input type="url" className="form-input" value={formData.image}
-              onChange={e => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." />
+            <label className="form-label">Imagen del producto</label>
+            <ImageUpload value={formData.image} onChange={url => setFormData({ ...formData, image: url })} />
           </div>
           <button type="submit" className="admin-btn-save" style={{ marginTop: '1rem' }}>AÑADIR AL CATÁLOGO</button>
         </form>
