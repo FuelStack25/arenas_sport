@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 
-const WHATSAPP_NUMBER = '5491100000000';
+const WHATSAPP_NUMBER = '573137884893';
 const fmt = (n) => Number(n).toLocaleString('es-AR');
 
 export default function CartDrawer({ items, total, count, onRemove, onUpdate, onClear, onClose }) {

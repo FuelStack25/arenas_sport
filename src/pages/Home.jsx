@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart } from 'lucide-react';
 
 // ← CAMBIA ESTE NÚMERO POR EL TUYO (formato internacional sin + ni espacios)
-const WHATSAPP_NUMBER = '5491100000000';
+const WHATSAPP_NUMBER = '573137884893';
 
 const SIZES = [36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
 
