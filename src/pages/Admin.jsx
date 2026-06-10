@@ -21,7 +21,8 @@ function adminFetch(url, opts = {}) {
     if (res.status === 401 || res.status === 403) {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(NAME_KEY);
-      window.location.href = '/';
+      localStorage.removeItem('arenas_user');
+      window.location.href = '/cuenta';
       throw new Error('Sesión expirada');
     }
     return res;
@@ -570,7 +571,7 @@ export default function Admin() {
     setToken(null);
   };
 
-  if (!token) return <Navigate to="/" replace />;
+  if (!token) return <Navigate to="/cuenta" replace />;
 
   const navLink = (path, label, Icon) => (
     <li>
