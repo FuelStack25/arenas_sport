@@ -105,6 +105,14 @@ db.serialize(() => {
   seedAdmin('Luis Arenas', 'LuisArenasCardona06@gmail.com', '81457');
 });
 
+// Migration: add is_new and in_stock columns if they don't exist
+db.all('PRAGMA table_info(products)', (_err, cols) => {
+  if (!cols) return;
+  const names = cols.map(c => c.name);
+  if (!names.includes('is_new'))   db.run('ALTER TABLE products ADD COLUMN is_new INTEGER DEFAULT 1');
+  if (!names.includes('in_stock')) db.run('ALTER TABLE products ADD COLUMN in_stock INTEGER DEFAULT 1');
+});
+
 /* ── MIDDLEWARE ─────────────────────────────────────────── */
 function requireAdmin(req, res, next) {
   const token = req.headers['x-admin-token'];
@@ -199,19 +207,19 @@ app.get('/api/products', (req, res) => {
 });
 
 app.post('/api/products', requireAdmin, (req, res) => {
-  const { name, description, price, image } = req.body;
-  db.run('INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)',
-    [name, description, price, image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400'],
+  const { name, description, price, image, is_new, in_stock } = req.body;
+  db.run('INSERT INTO products (name, description, price, image, is_new, in_stock) VALUES (?, ?, ?, ?, ?, ?)',
+    [name, description, price, image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400', is_new ?? 1, in_stock ?? 1],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: this.lastID, name, description, price, image });
+      res.json({ id: this.lastID, name, description, price, image, is_new, in_stock });
     });
 });
 
 app.put('/api/products/:id', requireAdmin, (req, res) => {
-  const { name, description, price, image } = req.body;
-  db.run('UPDATE products SET name=?, description=?, price=?, image=? WHERE id=?',
-    [name, description, price, image, req.params.id],
+  const { name, description, price, image, is_new, in_stock } = req.body;
+  db.run('UPDATE products SET name=?, description=?, price=?, image=?, is_new=?, in_stock=? WHERE id=?',
+    [name, description, price, image, is_new ?? 1, in_stock ?? 1, req.params.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ updated: this.changes });
@@ -278,11 +286,26 @@ app.get('/api/stats', requireAdmin, (_req, res) => {
 });
 
 app.get('/api/sales', requireAdmin, (_req, res) => {
-  const query = `SELECT sales.*, products.name as product_name FROM sales
-    JOIN products ON sales.product_id = products.id ORDER BY sales.sale_date DESC`;
+  const query = `SELECT sales.*, products.name as product_name, products.image as product_image
+    FROM sales LEFT JOIN products ON sales.product_id = products.id
+    ORDER BY sales.sale_date DESC LIMIT 100`;
   db.all(query, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
+  });
+});
+
+// Record sales from WhatsApp checkout (public, intent-based tracking)
+app.post('/api/sales/batch', (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items) || !items.length) return res.status(400).json({ error: 'Items requeridos' });
+  const stmt = db.prepare('INSERT INTO sales (product_id, quantity, total_price) VALUES (?, ?, ?)');
+  for (const item of items) {
+    stmt.run(item.product_id || null, item.quantity, item.total_price);
+  }
+  stmt.finalize(err => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ ok: true });
   });
 });
 
