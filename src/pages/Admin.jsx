@@ -11,6 +11,23 @@ const NAME_KEY  = 'arenas_admin_name';
 const getToken  = () => localStorage.getItem(TOKEN_KEY);
 const getName   = () => localStorage.getItem(NAME_KEY);
 
+// Wrapper de fetch para endpoints de admin: agrega el token y, si la sesión
+// expiró (token inválido tras un reinicio del servidor), fuerza un nuevo login.
+function adminFetch(url, opts = {}) {
+  return fetch(url, {
+    ...opts,
+    headers: { ...(opts.headers || {}), 'x-admin-token': getToken() },
+  }).then(res => {
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(NAME_KEY);
+      window.location.href = '/';
+      throw new Error('Sesión expirada');
+    }
+    return res;
+  });
+}
+
 /* ─── LOGIN ─────────────────────────────────────────────── */
 function LoginForm({ onLogin }) {
   const [email, setEmail]       = useState('');
@@ -76,9 +93,9 @@ function Dashboard() {
   const [sales, setSales] = useState([]);
 
   useEffect(() => {
-    fetch('/api/stats', { headers: { 'x-admin-token': getToken() } })
+    adminFetch('/api/stats')
       .then(r => r.json()).then(setStats).catch(() => {});
-    fetch('/api/sales', { headers: { 'x-admin-token': getToken() } })
+    adminFetch('/api/sales')
       .then(r => r.json()).then(d => setSales(Array.isArray(d) ? d.slice(0, 20) : [])).catch(() => {});
   }, []);
 
@@ -167,7 +184,7 @@ function ProductList() {
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"?`)) return;
-    const res = await fetch(`/api/products/${id}`, { method: 'DELETE', headers: { 'x-admin-token': getToken() } });
+    const res = await adminFetch(`/api/products/${id}`, { method: 'DELETE' });
     if (res.ok) { notify('Producto eliminado.'); load(); }
   };
 
@@ -178,9 +195,9 @@ function ProductList() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    const res = await fetch(`/api/products/${editingId}`, {
+    const res = await adminFetch(`/api/products/${editingId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': getToken() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
     });
     if (res.ok) { notify('¡Producto actualizado!'); setEditingId(null); load(); }
@@ -276,7 +293,7 @@ function ImageUpload({ value, onChange }) {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      const res  = await fetch('/api/upload', { method: 'POST', headers: { 'x-admin-token': getToken() }, body: fd });
+      const res  = await adminFetch('/api/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (res.ok) { onChange(data.url); }
       else { alert(data.error || 'Error al subir imagen'); setPreview(value || ''); }
@@ -313,9 +330,9 @@ function AddProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setStatus('Subiendo...');
     try {
-      const res = await fetch('/api/products', {
+      const res = await adminFetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': getToken() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       if (res.ok) {
@@ -382,14 +399,14 @@ function UsersList() {
   const [status, setStatus] = useState('');
 
   const load = () => {
-    fetch('/api/admin/users', { headers: { 'x-admin-token': getToken() } })
-      .then(r => r.json()).then(d => { setUsers(d); setLoading(false); }).catch(() => setLoading(false));
+    adminFetch('/api/admin/users')
+      .then(r => r.json()).then(d => { setUsers(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
   const handleDelete = async (id, email) => {
     if (!window.confirm(`¿Eliminar la cuenta de ${email}?`)) return;
-    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: { 'x-admin-token': getToken() } });
+    const res = await adminFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
     const data = await res.json();
     if (res.ok) { setStatus('Cuenta eliminada.'); load(); }
     else setStatus(data.error || 'Error al eliminar.');
@@ -486,9 +503,9 @@ function AddAdmin() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setStatus('Creando...');
     try {
-      const res = await fetch('/api/admin/admins', {
+      const res = await adminFetch('/api/admin/admins', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': getToken() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       const data = await res.json();
