@@ -4,7 +4,7 @@ import { ArrowLeft, ShieldCheck } from 'lucide-react';
 
 export default function Account({ user, onLogin, onLogout }) {
   const [tab, setTab]           = useState('login');
-  const [form, setForm]         = useState({ name: '', email: '', password: '' });
+  const [form, setForm]         = useState({ name: '', email: user?.email || '', password: '' });
   const [status, setStatus]     = useState('');
   const [isError, setIsError]   = useState(false);
   const [loading, setLoading]   = useState(false);
@@ -55,7 +55,9 @@ export default function Account({ user, onLogin, onLogout }) {
     setLoading(false);
   };
 
-  if (user) {
+  const needsAdminReauth = user?.role === 'admin' && !localStorage.getItem('arenas_admin_token');
+
+  if (user && !needsAdminReauth) {
     return (
       <div className="login-page">
         <div className="login-card">
@@ -91,21 +93,26 @@ export default function Account({ user, onLogin, onLogout }) {
           <div className="login-badge">MI CUENTA</div>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
-          {['login', 'register'].map(t => (
-            <button key={t} onClick={() => { setTab(t); setStatus(''); }}
-              style={{
-                flex: 1, padding: '0.7rem', background: 'transparent', border: 'none',
-                borderBottom: tab === t ? '2px solid var(--accent-red)' : '2px solid transparent',
-                color: tab === t ? 'var(--white)' : 'var(--text-muted)',
-                fontFamily: 'var(--font-display)', fontSize: '1rem', letterSpacing: '0.08em',
-                cursor: 'pointer', transition: 'all 0.2s',
-              }}>
-              {t === 'login' ? 'INGRESAR' : 'REGISTRARSE'}
-            </button>
-          ))}
-        </div>
+        {needsAdminReauth ? (
+          <div className="login-error" style={{ borderColor: 'var(--accent-blue)', color: '#6ec6f5', marginBottom: '1.5rem' }}>
+            Tu sesión de administrador expiró. Volvé a ingresar tu contraseña para acceder al panel.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
+            {['login', 'register'].map(t => (
+              <button key={t} onClick={() => { setTab(t); setStatus(''); }}
+                style={{
+                  flex: 1, padding: '0.7rem', background: 'transparent', border: 'none',
+                  borderBottom: tab === t ? '2px solid var(--accent-red)' : '2px solid transparent',
+                  color: tab === t ? 'var(--white)' : 'var(--text-muted)',
+                  fontFamily: 'var(--font-display)', fontSize: '1rem', letterSpacing: '0.08em',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                }}>
+                {t === 'login' ? 'INGRESAR' : 'REGISTRARSE'}
+              </button>
+            ))}
+          </div>
+        )}
 
         {status && (
           <div className="login-error" style={{ borderColor: isError ? '' : 'var(--accent-blue)', color: isError ? '' : '#6ec6f5', marginBottom: '1rem' }}>
