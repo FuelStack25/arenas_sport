@@ -11,6 +11,46 @@ const NAME_KEY  = 'arenas_admin_name';
 const getToken  = () => localStorage.getItem(TOKEN_KEY);
 const getName   = () => localStorage.getItem(NAME_KEY);
 
+const formatCOP = (raw) => {
+  const n = String(raw).replace(/\D/g, '');
+  if (!n) return '';
+  return n.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
+function PriceInput({ value, onChange, required }) {
+  const [display, setDisplay] = useState(value ? formatCOP(value) : '');
+
+  useEffect(() => {
+    setDisplay(value ? formatCOP(value) : '');
+  }, [value]);
+
+  const handleChange = (e) => {
+    const raw = e.target.value.replace(/\./g, '').replace(/\D/g, '');
+    setDisplay(formatCOP(raw));
+    onChange(raw);
+  };
+
+  return (
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <span style={{
+        position: 'absolute', left: '0.85rem',
+        fontFamily: 'var(--font-display)', fontSize: '0.75rem',
+        color: 'var(--text-muted)', letterSpacing: '0.05em', pointerEvents: 'none',
+      }}>COP</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        className="form-input"
+        required={required}
+        value={display}
+        onChange={handleChange}
+        placeholder="0"
+        style={{ paddingLeft: '3.2rem' }}
+      />
+    </div>
+  );
+}
+
 // Wrapper de fetch para endpoints de admin: agrega el token y, si la sesión
 // expiró (token inválido tras un reinicio del servidor), fuerza un nuevo login.
 function adminFetch(url, opts = {}) {
@@ -151,7 +191,7 @@ function Dashboard() {
                     </td>
                     <td>{s.quantity}</td>
                     <td style={{ color: 'var(--accent-red)', fontFamily: 'var(--font-display)' }}>
-                      ${Number(s.total_price).toFixed(2)}
+                      COP {formatCOP(Math.round(s.total_price))}
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       {new Date(s.sale_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
@@ -225,8 +265,8 @@ function ProductList() {
                       <input className="form-input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">PRECIO ($)</label>
-                      <input className="form-input" type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                      <label className="form-label">PRECIO (COP)</label>
+                      <PriceInput required value={formData.price} onChange={v => setFormData({ ...formData, price: v })} />
                     </div>
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label className="form-label">DESCRIPCIÓN</label>
@@ -265,7 +305,7 @@ function ProductList() {
                       {!!product.is_new && !!product.in_stock && <span className="admin-badge-new">NUEVO</span>}
                     </div>
                     <div className="product-list-desc">{product.description}</div>
-                    <div className="product-list-price">${Number(product.price).toFixed(2)}</div>
+                    <div className="product-list-price">COP {formatCOP(Math.round(product.price))}</div>
                   </div>
                   <div className="product-list-actions">
                     <button className="action-btn edit" onClick={() => startEdit(product)} title="Editar"><Edit2 size={15} /></button>
@@ -365,9 +405,8 @@ function AddProduct() {
               placeholder="Características del calzado..." style={{ resize: 'vertical' }} />
           </div>
           <div className="form-group">
-            <label className="form-label">Precio ($)</label>
-            <input type="number" step="0.01" className="form-input" required value={formData.price}
-              onChange={e => setFormData({ ...formData, price: e.target.value })} placeholder="0.00" />
+            <label className="form-label">Precio (COP)</label>
+            <PriceInput required value={formData.price} onChange={v => setFormData({ ...formData, price: v })} />
           </div>
           <div className="form-group">
             <label className="form-label">Imagen del producto</label>

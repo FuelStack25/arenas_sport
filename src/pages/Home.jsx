@@ -50,7 +50,7 @@ function ProductCard({ product, onAdd, index }) {
     const sizeText = selectedSize ? ` Talle: *${selectedSize}*` : '';
     const message = outOfStock
       ? encodeURIComponent(`Hola! Me interesa el modelo *${product.name}*. ¿Cuándo va a volver a tener stock?`)
-      : encodeURIComponent(`Hola! Me interesa el modelo *${product.name}* — $${Number(product.price).toFixed(2)}.${sizeText} ¿Está disponible?`);
+      : encodeURIComponent(`Hola! Me interesa el modelo *${product.name}* — COP ${Number(product.price).toLocaleString('es-CO')}.${sizeText} ¿Está disponible?`);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -84,8 +84,8 @@ function ProductCard({ product, onAdd, index }) {
           <p className="product-description">{product.description}</p>
         )}
         <div className="product-price">
-          <span className="price-currency">$</span>
-          {Number(product.price).toFixed(2)}
+          <span className="price-currency">COP</span>
+          {Number(product.price).toLocaleString('es-CO')}
         </div>
 
         <div className="size-selector">
