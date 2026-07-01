@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Production data — NEVER commit these, deploy overwrites them
+data/
+uploads/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
