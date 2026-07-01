@@ -30,6 +30,18 @@ function PriceInput({ value, onChange, required }) {
     onChange(raw);
   };
 
+  // Si el dueño escribe "120" y sale del campo → lo convierte a 120000
+  const handleBlur = () => {
+    const raw = display.replace(/\./g, '');
+    if (!raw) return;
+    const n = Number(raw);
+    if (n > 0 && n < 1000) {
+      const full = n * 1000;
+      setDisplay(formatCOP(full));
+      onChange(String(full));
+    }
+  };
+
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <span style={{
@@ -44,7 +56,8 @@ function PriceInput({ value, onChange, required }) {
         required={required}
         value={display}
         onChange={handleChange}
-        placeholder="0"
+        onBlur={handleBlur}
+        placeholder="Ej: 120 → 120.000"
         style={{ paddingLeft: '3.2rem' }}
       />
     </div>
